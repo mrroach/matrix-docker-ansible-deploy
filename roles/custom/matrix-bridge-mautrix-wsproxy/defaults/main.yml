@@ -53,8 +53,7 @@ matrix_mautrix_wsproxy_systemd_wanted_services_list: []
 # List of systemd services that matrix-mautrix-wsproxy.service wants
 matrix_mautrix_wsproxy_syncproxy_systemd_wanted_services_list: []
 
-matrix_mautrix_wsproxy_appservice_token: ''
-matrix_mautrix_wsproxy_homeserver_token: ''
+# Key shared between wsproxy and sync proxy
 matrix_mautrix_wsproxy_sync_proxy_shared_key: ''
 
 # Whether or not created rooms should have federation enabled.
@@ -94,19 +93,3 @@ matrix_mautrix_wsproxy_configuration_extension: "{{ matrix_mautrix_wsproxy_confi
 matrix_mautrix_wsproxy_configuration: "{{ matrix_mautrix_wsproxy_configuration_yaml | from_yaml | combine(matrix_mautrix_wsproxy_configuration_extension, recursive=True) }}"
 
 matrix_mautrix_wsproxy_syncproxy_configuration: "{{ lookup('template', 'templates/syncproxy.env.j2') }}"
-
-matrix_mautrix_wsproxy_registration_yaml: |
-  id: imessage
-  as_token: "{{ matrix_mautrix_wsproxy_appservice_token }}"
-  hs_token: "{{ matrix_mautrix_wsproxy_homeserver_token }}"
-  namespaces:
-    users:
-    - exclusive: true
-      regex: '^@imessage_.+:{{ matrix_mautrix_wsproxy_homeserver_domain | regex_escape }}$'
-    - exclusive: true
-      regex: '^@imessagebot:{{ matrix_mautrix_wsproxy_homeserver_domain | regex_escape }}$'
-  url: http://matrix-mautrix-wsproxy:29331
-  sender_localpart: _bot_dooble
-  rate_limited: false
-
-matrix_mautrix_wsproxy_registration: "{{ matrix_mautrix_wsproxy_registration_yaml | from_yaml }}"

@@ -20,7 +20,7 @@
 		{% if matrix_nginx_proxy_enabled %}
 			{# Use the embedded DNS resolver in Docker containers to discover the service #}
 			resolver 127.0.0.11 valid=5s;
-			proxy_read_timeout 30m;
+			proxy_read_timeout 90m;
 			set $backend "matrix-mautrix-wsproxy:29331";
 			proxy_pass http://$backend;
 			proxy_set_header Upgrade $http_upgrade;

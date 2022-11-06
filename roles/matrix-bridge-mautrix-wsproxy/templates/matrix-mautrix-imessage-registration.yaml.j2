@@ -1,0 +1,12 @@
+id: {{ item.user }}-sms
+as_token: "{{ item.as_token }}"
+hs_token: "{{ item.hs_token }}"
+namespaces:
+  users:
+  - exclusive: true
+    regex: '^@{{ item.user }}-sms_.+:{{ matrix_mautrix_wsproxy_homeserver_domain | regex_escape }}$'
+  - exclusive: true
+    regex: '^@{{ item.user }}-smsbot:{{ matrix_mautrix_wsproxy_homeserver_domain | regex_escape }}$'
+url: http://matrix-mautrix-wsproxy:29331
+sender_localpart: _bot_{{ item.user }}_lp
+rate_limited: false

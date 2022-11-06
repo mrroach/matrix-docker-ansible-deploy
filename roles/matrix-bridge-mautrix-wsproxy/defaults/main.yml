@@ -1,119 +1,112 @@
 ---
-# mautrix-twitter is a Matrix <-> Twitter bridge
-# Project source code URL: https://github.com/mautrix/twitter
+# mautrix-wsproxy is a Matrix <-> WebSocket bridge
+# Project source code URL: https://github.com/mautrix/wsproxy
 
-matrix_mautrix_twitter_enabled: true
+matrix_mautrix_wsproxy_enabled: true
 
-matrix_mautrix_twitter_container_image_self_build: false
-matrix_mautrix_twitter_container_image_self_build_repo: "https://github.com/mautrix/twitter.git"
-matrix_mautrix_twitter_container_image_self_build_repo_version: "{{ 'master' if matrix_mautrix_twitter_version == 'latest' else matrix_mautrix_twitter_version }}"
+matrix_mautrix_wsproxy_container_image_self_build: false
+matrix_mautrix_wsproxy_container_image_self_build_repo: "https://github.com/mautrix/wsproxy.git"
+matrix_mautrix_wsproxy_container_image_self_build_repo_version: "{{ 'master' if matrix_mautrix_wsproxy_version == 'latest' else matrix_mautrix_wsproxy_version }}"
 
-matrix_mautrix_twitter_version: v0.1.5
-# See: https://mau.dev/tulir/mautrix-twitter/container_registry
-matrix_mautrix_twitter_docker_image: "{{ matrix_mautrix_twitter_docker_image_name_prefix }}mautrix/twitter:{{ matrix_mautrix_twitter_version }}"
-matrix_mautrix_twitter_docker_image_name_prefix: "{{ 'localhost/' if matrix_mautrix_twitter_container_image_self_build else 'dock.mau.dev/' }}"
-matrix_mautrix_twitter_docker_image_force_pull: "{{ matrix_mautrix_twitter_docker_image.endswith(':latest') }}"
+matrix_mautrix_wsproxy_version: latest
+# See: https://mau.dev/tulir/mautrix-wsproxy/container_registry
+matrix_mautrix_wsproxy_docker_image: "{{ matrix_mautrix_wsproxy_docker_image_name_prefix }}mautrix/wsproxy:{{ matrix_mautrix_wsproxy_version }}"
+matrix_mautrix_wsproxy_docker_image_name_prefix: "{{ 'localhost/' if matrix_mautrix_wsproxy_container_image_self_build else 'dock.mau.dev/' }}"
+matrix_mautrix_wsproxy_docker_image_force_pull: "{{ matrix_mautrix_wsproxy_docker_image.endswith(':latest') }}"
 
-matrix_mautrix_twitter_base_path: "{{ matrix_base_data_path }}/mautrix-twitter"
-matrix_mautrix_twitter_config_path: "{{ matrix_mautrix_twitter_base_path }}/config"
-matrix_mautrix_twitter_data_path: "{{ matrix_mautrix_twitter_base_path }}/data"
-matrix_mautrix_twitter_docker_src_files_path: "{{ matrix_mautrix_twitter_base_path }}/docker-src"
+matrix_mautrix_syncproxy_docker_image: dock.mau.dev/mautrix/syncproxy:latest
 
-matrix_mautrix_twitter_homeserver_address: "{{ matrix_homeserver_container_url }}"
-matrix_mautrix_twitter_homeserver_domain: '{{ matrix_domain }}'
-matrix_mautrix_twitter_appservice_address: 'http://matrix-mautrix-twitter:29327'
+matrix_mautrix_wsproxy_base_path: "{{ matrix_base_data_path }}/mautrix-wsproxy"
+matrix_mautrix_wsproxy_config_path: "{{ matrix_mautrix_wsproxy_base_path }}/config"
+matrix_mautrix_wsproxy_data_path: "{{ matrix_mautrix_wsproxy_base_path }}/data"
+matrix_mautrix_wsproxy_docker_src_files_path: "{{ matrix_mautrix_wsproxy_base_path }}/docker-src"
 
-matrix_mautrix_twitter_command_prefix: "!tw"
+matrix_mautrix_wsproxy_homeserver_address: "{{ matrix_homeserver_container_url }}"
+matrix_mautrix_wsproxy_homeserver_domain: '{{ matrix_domain }}'
+matrix_mautrix_wsproxy_appservice_address: 'http://matrix-mautrix-wsproxy:29331'
 
-matrix_mautrix_twitter_bridge_permissions: |
-  {{
-    {matrix_mautrix_twitter_homeserver_domain: 'user'}
-    | combine({matrix_admin: 'admin'} if matrix_admin else {})
-  }}
+matrix_mautrix_wsproxy_command_prefix: "!im"
+
+matrix_mautrix_wsproxy_syncproxy_database_username: 'matrix_mautrix_wsproxy_syncproxy'
+matrix_mautrix_wsproxy_syncproxy_database_password: 'some-password'
+matrix_mautrix_wsproxy_syncproxy_database_hostname: 'matrix-postgres'
+matrix_mautrix_wsproxy_syncproxy_database_port: 5432
+matrix_mautrix_wsproxy_syncproxy_database_name: 'matrix_mautrix_wsproxy_syncproxy'
+
+matrix_mautrix_wsproxy_syncproxy_database_connection_string: 'postgres://{{ matrix_mautrix_wsproxy_syncproxy_database_username }}:{{ matrix_mautrix_wsproxy_syncproxy_database_password }}@{{ matrix_mautrix_wsproxy_syncproxy_database_hostname }}:{{ matrix_mautrix_wsproxy_syncproxy_database_port }}/{{ matrix_mautrix_wsproxy_syncproxy_database_name }}'
+
+# List of users of the form: { name: 'username', as_token: 'secret', hs_token: 'secret' }
+matrix_mautrix_wsproxy_users: []
 
 # A list of extra arguments to pass to the container
-matrix_mautrix_twitter_container_extra_arguments: []
+matrix_mautrix_wsproxy_container_extra_arguments: []
 
-# List of systemd services that matrix-mautrix-twitter.service depends on.
-matrix_mautrix_twitter_systemd_required_services_list: ['docker.service']
+# List of systemd services that matrix-mautrix-wsproxy.service depends on.
+matrix_mautrix_wsproxy_systemd_required_services_list: ['docker.service']
 
-# List of systemd services that matrix-mautrix-twitter.service wants
-matrix_mautrix_twitter_systemd_wanted_services_list: []
+# List of systemd services that matrix-mautrix-syncproxy.service depends on.
+matrix_mautrix_wsproxy_syncproxy_systemd_required_services_list: ['docker.service']
 
-matrix_mautrix_twitter_appservice_token: ''
-matrix_mautrix_twitter_homeserver_token: ''
+# List of systemd services that matrix-mautrix-wsproxy.service wants
+matrix_mautrix_wsproxy_systemd_wanted_services_list: []
+
+# List of systemd services that matrix-mautrix-wsproxy.service wants
+matrix_mautrix_wsproxy_syncproxy_systemd_wanted_services_list: []
+
+matrix_mautrix_wsproxy_appservice_token: ''
+matrix_mautrix_wsproxy_homeserver_token: ''
+matrix_mautrix_wsproxy_sync_proxy_shared_key: ''
 
 # Whether or not created rooms should have federation enabled.
 # If false, created portal rooms will never be federated.
-matrix_mautrix_twitter_federate_rooms: true
-
-# Database-related configuration fields.
-#
-# To use Postgres:
-# - adjust your database credentials via the `matrix_mautrix_twitter_postgres_*` variables
-matrix_mautrix_twitter_database_engine: 'postgres'
-
-matrix_mautrix_twitter_database_username: 'matrix_mautrix_twitter'
-matrix_mautrix_twitter_database_password: ''
-matrix_mautrix_twitter_database_hostname: ''
-matrix_mautrix_twitter_database_port: 5432
-matrix_mautrix_twitter_database_name: 'matrix_mautrix_twitter'
-
-matrix_mautrix_twitter_database_connection_string: 'postgres://{{ matrix_mautrix_twitter_database_username }}:{{ matrix_mautrix_twitter_database_password }}@{{ matrix_mautrix_twitter_database_hostname }}:{{ matrix_mautrix_twitter_database_port }}/{{ matrix_mautrix_twitter_database_name }}'
-
-matrix_mautrix_twitter_appservice_database: "{{
-	{
-		'postgres': matrix_mautrix_twitter_database_connection_string,
-	}[matrix_mautrix_twitter_database_engine]
-}}"
-
+matrix_mautrix_wsproxy_federate_rooms: true
 
 # Can be set to enable automatic double-puppeting via Shared Secret Auth (https://github.com/devture/matrix-synapse-shared-secret-auth).
-matrix_mautrix_twitter_login_shared_secret: ''
+matrix_mautrix_wsproxy_login_shared_secret: ''
 
-matrix_mautrix_twitter_bridge_login_shared_secret_map: "{{ {matrix_mautrix_twitter_homeserver_domain: matrix_mautrix_twitter_login_shared_secret} if matrix_mautrix_twitter_login_shared_secret else {} }}"
+matrix_mautrix_wsproxy_bridge_login_shared_secret_map: "{{ {matrix_mautrix_wsproxy_homeserver_domain: matrix_mautrix_wsproxy_login_shared_secret} if matrix_mautrix_wsproxy_login_shared_secret else {} }}"
 
-matrix_mautrix_twitter_appservice_bot_username: twitterbot
+matrix_mautrix_wsproxy_appservice_bot_username: wsproxybot
 
 # Specifies the default log level for all bridge loggers.
-matrix_mautrix_twitter_logging_level: WARNING
+matrix_mautrix_wsproxy_logging_level: WARNING
 
 # Default configuration template which covers the generic use case.
 # You can customize it by controlling the various variables inside it.
 #
-# For a more advanced customization, you can extend the default (see `matrix_mautrix_twitter_configuration_extension_yaml`)
+# For a more advanced customization, you can extend the default (see `matrix_mautrix_wsproxy_configuration_extension_yaml`)
 # or completely replace this variable with your own template.
-matrix_mautrix_twitter_configuration_yaml: "{{ lookup('template', 'templates/config.yaml.j2') }}"
+matrix_mautrix_wsproxy_configuration_yaml: "{{ lookup('template', 'templates/config.yaml.j2') }}"
 
-matrix_mautrix_twitter_configuration_extension_yaml: |
+matrix_mautrix_wsproxy_configuration_extension_yaml: |
   # Your custom YAML configuration goes here.
-  # This configuration extends the default starting configuration (`matrix_mautrix_twitter_configuration_yaml`).
+  # This configuration extends the default starting configuration (`matrix_mautrix_wsproxy_configuration_yaml`).
   #
   # You can override individual variables from the default configuration, or introduce new ones.
   #
   # If you need something more special, you can take full control by
-  # completely redefining `matrix_mautrix_twitter_configuration_yaml`.
+  # completely redefining `matrix_mautrix_wsproxy_configuration_yaml`.
 
-matrix_mautrix_twitter_configuration_extension: "{{ matrix_mautrix_twitter_configuration_extension_yaml | from_yaml if matrix_mautrix_twitter_configuration_extension_yaml | from_yaml is mapping else {} }}"
+matrix_mautrix_wsproxy_configuration_extension: "{{ matrix_mautrix_wsproxy_configuration_extension_yaml | from_yaml if matrix_mautrix_wsproxy_configuration_extension_yaml | from_yaml is mapping else {} }}"
 
 # Holds the final configuration (a combination of the default and its extension).
-# You most likely don't need to touch this variable. Instead, see `matrix_mautrix_twitter_configuration_yaml`.
-matrix_mautrix_twitter_configuration: "{{ matrix_mautrix_twitter_configuration_yaml | from_yaml | combine(matrix_mautrix_twitter_configuration_extension, recursive=True) }}"
+# You most likely don't need to touch this variable. Instead, see `matrix_mautrix_wsproxy_configuration_yaml`.
+matrix_mautrix_wsproxy_configuration: "{{ matrix_mautrix_wsproxy_configuration_yaml | from_yaml | combine(matrix_mautrix_wsproxy_configuration_extension, recursive=True) }}"
 
-matrix_mautrix_twitter_registration_yaml: |
-  id: twitter
-  as_token: "{{ matrix_mautrix_twitter_appservice_token }}"
-  hs_token: "{{ matrix_mautrix_twitter_homeserver_token }}"
+matrix_mautrix_wsproxy_syncproxy_configuration: "{{ lookup('template', 'templates/syncproxy.env.j2') }}"
+
+matrix_mautrix_wsproxy_registration_yaml: |
+  id: imessage
+  as_token: "{{ matrix_mautrix_wsproxy_appservice_token }}"
+  hs_token: "{{ matrix_mautrix_wsproxy_homeserver_token }}"
   namespaces:
     users:
     - exclusive: true
-      regex: '^@twitter_.+:{{ matrix_mautrix_twitter_homeserver_domain | regex_escape }}$'
+      regex: '^@imessage_.+:{{ matrix_mautrix_wsproxy_homeserver_domain | regex_escape }}$'
     - exclusive: true
-      regex: '^@{{ matrix_mautrix_twitter_appservice_bot_username | regex_escape }}:{{ matrix_mautrix_twitter_homeserver_domain | regex_escape }}$'
-  url: {{ matrix_mautrix_twitter_appservice_address }}
-  # See https://github.com/tulir/mautrix-signal/issues/43
-  sender_localpart: _bot_{{ matrix_mautrix_twitter_appservice_bot_username }}
+      regex: '^@imessagebot:{{ matrix_mautrix_wsproxy_homeserver_domain | regex_escape }}$'
+  url: http://matrix-mautrix-wsproxy:29331
+  sender_localpart: _bot_dooble
   rate_limited: false
-  de.sorunome.msc2409.push_ephemeral: true
 
-matrix_mautrix_twitter_registration: "{{ matrix_mautrix_twitter_registration_yaml | from_yaml }}"
+matrix_mautrix_wsproxy_registration: "{{ matrix_mautrix_wsproxy_registration_yaml | from_yaml }}"

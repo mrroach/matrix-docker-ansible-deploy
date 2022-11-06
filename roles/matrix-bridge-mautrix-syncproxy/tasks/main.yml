@@ -5,19 +5,19 @@
     - always
 
 - ansible.builtin.import_tasks: "{{ role_path }}/tasks/validate_config.yml"
-  when: "run_setup | bool and matrix_mautrix_wsproxy_enabled | bool"
+  when: "run_setup | bool and matrix_mautrix_signal_enabled | bool"
   tags:
     - setup-all
-    - setup-mautrix-wsproxy
+    - setup-mautrix-signal
 
 - ansible.builtin.import_tasks: "{{ role_path }}/tasks/setup_install.yml"
-  when: "run_setup | bool and matrix_mautrix_wsproxy_enabled | bool"
+  when: "run_setup | bool and matrix_mautrix_signal_enabled | bool"
   tags:
     - setup-all
-    - setup-mautrix-wsproxy
+    - setup-mautrix-signal
 
 - ansible.builtin.import_tasks: "{{ role_path }}/tasks/setup_uninstall.yml"
-  when: "run_setup | bool and not matrix_mautrix_wsproxy_enabled | bool"
+  when: "run_setup | bool and not matrix_mautrix_signal_enabled | bool"
   tags:
     - setup-all
-    - setup-mautrix-wsproxy
+    - setup-mautrix-signal

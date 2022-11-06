@@ -29,6 +29,7 @@
     - matrix-bridge-mautrix-telegram
     - matrix-bridge-mautrix-whatsapp
     - matrix-bridge-mautrix-discord
+    - matrix-bridge-mautrix-wsproxy
     - matrix-bridge-mx-puppet-discord
     - matrix-bridge-mx-puppet-groupme
     - matrix-bridge-mx-puppet-steam

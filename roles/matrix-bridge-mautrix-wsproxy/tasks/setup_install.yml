@@ -5,25 +5,28 @@
 - name: Fail if matrix-synapse role already executed
   ansible.builtin.fail:
     msg: >-
-      The matrix-bridge-mautrix-twitter role needs to execute before the matrix-synapse role.
+      The matrix-bridge-mautrix-wsproxy role needs to execute before the matrix-synapse role.
   when: "matrix_synapse_role_executed | default(False)"
 
 - ansible.builtin.set_fact:
-    matrix_mautrix_twitter_requires_restart: false
+    matrix_mautrix_wsproxy_requires_restart: false
 
-- name: Ensure Mautrix Twitter image is pulled
+- ansible.builtin.set_fact:
+    matrix_mautrix_wsproxy_syncproxy_requires_restart: false
+  
+- name: Ensure Mautrix WSProxy image is pulled
   docker_image:
-    name: "{{ matrix_mautrix_twitter_docker_image }}"
+    name: "{{ matrix_mautrix_wsproxy_docker_image }}"
     source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
-    force_source: "{{ matrix_mautrix_twitter_docker_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
-    force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else matrix_mautrix_twitter_docker_image_force_pull }}"
-  when: matrix_mautrix_twitter_enabled | bool and not matrix_mautrix_twitter_container_image_self_build
+    force_source: "{{ matrix_mautrix_wsproxy_docker_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
+    force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else matrix_mautrix_wsproxy_docker_image_force_pull }}"
+  when: matrix_mautrix_wsproxy_enabled | bool and not matrix_mautrix_wsproxy_container_image_self_build
   register: result
   retries: "{{ matrix_container_retries_count }}"
   delay: "{{ matrix_container_retries_delay }}"
   until: result is not failed
 
-- name: Ensure Mautrix Twitter paths exist
+- name: Ensure Mautrix WSProxy paths exist
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: directory
@@ -31,64 +34,89 @@
     owner: "{{ matrix_user_username }}"
     group: "{{ matrix_user_groupname }}"
   with_items:
-    - {path: "{{ matrix_mautrix_twitter_base_path }}", when: true}
-    - {path: "{{ matrix_mautrix_twitter_config_path }}", when: true}
-    - {path: "{{ matrix_mautrix_twitter_data_path }}", when: true}
-    - {path: "{{ matrix_mautrix_twitter_docker_src_files_path }}", when: "{{ matrix_mautrix_twitter_container_image_self_build }}"}
+    - {path: "{{ matrix_mautrix_wsproxy_base_path }}", when: true}
+    - {path: "{{ matrix_mautrix_wsproxy_config_path }}", when: true}
+    - {path: "{{ matrix_mautrix_wsproxy_data_path }}", when: true}
+    - {path: "{{ matrix_mautrix_wsproxy_docker_src_files_path }}", when: "{{ matrix_mautrix_wsproxy_container_image_self_build }}"}
   when: item.when | bool
 
-- name: Ensure Mautrix Twitter repository is present on self-build
+- name: Ensure Mautrix WSProxy repository is present on self-build
   ansible.builtin.git:
-    repo: "{{ matrix_mautrix_twitter_container_image_self_build_repo }}"
-    version: "{{ matrix_mautrix_twitter_container_image_self_build_repo_version }}"
-    dest: "{{ matrix_mautrix_twitter_docker_src_files_path }}"
+    repo: "{{ matrix_mautrix_wsproxy_container_image_self_build_repo }}"
+    version: "{{ matrix_mautrix_wsproxy_container_image_self_build_repo_version }}"
+    dest: "{{ matrix_mautrix_wsproxy_docker_src_files_path }}"
     force: "yes"
   become: true
   become_user: "{{ matrix_user_username }}"
-  register: matrix_mautrix_twitter_git_pull_results
-  when: "matrix_mautrix_twitter_enabled | bool and matrix_mautrix_twitter_container_image_self_build"
+  register: matrix_mautrix_wsproxy_git_pull_results
+  when: "matrix_mautrix_wsproxy_enabled | bool and matrix_mautrix_wsproxy_container_image_self_build"
 
-- name: Ensure Mautrix Twitter Docker image is built
+- name: Ensure Mautrix WSProxy Docker image is built
   docker_image:
-    name: "{{ matrix_mautrix_twitter_docker_image }}"
+    name: "{{ matrix_mautrix_wsproxy_docker_image }}"
     source: build
-    force_source: "{{ matrix_mautrix_twitter_git_pull_results.changed }}"
+    force_source: "{{ matrix_mautrix_wsproxy_git_pull_results.changed }}"
     build:
       dockerfile: Dockerfile
-      path: "{{ matrix_mautrix_twitter_docker_src_files_path }}"
+      path: "{{ matrix_mautrix_wsproxy_docker_src_files_path }}"
       pull: true
-  when: "matrix_mautrix_twitter_enabled | bool and matrix_mautrix_twitter_container_image_self_build | bool"
+  when: "matrix_mautrix_wsproxy_enabled | bool and matrix_mautrix_wsproxy_container_image_self_build | bool"
 
-- name: Ensure mautrix-twitter config.yaml installed
+- name: Ensure mautrix-wsproxy config.yaml installed
   ansible.builtin.copy:
-    content: "{{ matrix_mautrix_twitter_configuration | to_nice_yaml(indent=2, width=999999) }}"
-    dest: "{{ matrix_mautrix_twitter_config_path }}/config.yaml"
+    content: "{{ matrix_mautrix_wsproxy_configuration | to_nice_yaml(indent=2, width=999999) }}"
+    dest: "{{ matrix_mautrix_wsproxy_config_path }}/config.yaml"
     mode: 0644
     owner: "{{ matrix_user_username }}"
     group: "{{ matrix_user_groupname }}"
 
-- name: Ensure mautrix-twitter registration.yaml installed
-  ansible.builtin.copy:
-    content: "{{ matrix_mautrix_twitter_registration | to_nice_yaml(indent=2, width=999999) }}"
-    dest: "{{ matrix_mautrix_twitter_config_path }}/registration.yaml"
-    mode: 0644
-    owner: "{{ matrix_user_username }}"
-    group: "{{ matrix_user_groupname }}"
-
-- name: Ensure matrix-mautrix-twitter.service installed
+- name: Create an imessage registration per user
   ansible.builtin.template:
-    src: "{{ role_path }}/templates/systemd/matrix-mautrix-twitter.service.j2"
-    dest: "{{ matrix_systemd_path }}/matrix-mautrix-twitter.service"
+    src: "{{ role_path }}/templates/matrix-mautrix-imessage-registration.yaml.j2"
+    dest: "{{ matrix_mautrix_wsproxy_config_path }}/registration_{{ item.user }}.yaml"
     mode: 0644
-  register: matrix_mautrix_twitter_systemd_service_result
+  loop: "{{ matrix_mautrix_wsproxy_users }}"
+  
+- name: Ensure mautrix-wsproxy syncproxy.env installed
+  ansible.builtin.copy:
+    content: "{{ matrix_mautrix_wsproxy_syncproxy_configuration }}"
+    dest: "{{ matrix_mautrix_wsproxy_config_path }}/syncproxy.env"
+    mode: 0644
+    owner: "{{ matrix_user_username }}"
+    group: "{{ matrix_user_groupname }}"
 
-- name: Ensure systemd reloaded after matrix-mautrix-twitter.service installation
+- name: Ensure matrix-mautrix-wsproxy.service installed
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/systemd/matrix-mautrix-wsproxy.service.j2"
+    dest: "{{ matrix_systemd_path }}/matrix-mautrix-wsproxy.service"
+    mode: 0644
+  register: matrix_mautrix_wsproxy_systemd_service_result
+
+- name: Ensure matrix-mautrix-syncproxy.service installed
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/systemd/matrix-mautrix-syncproxy.service.j2"
+    dest: "{{ matrix_systemd_path }}/matrix-mautrix-syncproxy.service"
+    mode: 0644
+  register: matrix_mautrix_wsproxy_syncproxy_systemd_service_result
+
+- name: Ensure systemd reloaded after matrix-mautrix-wsproxy.service installation
   ansible.builtin.service:
     daemon_reload: true
-  when: "matrix_mautrix_twitter_systemd_service_result.changed"
+  when: "matrix_mautrix_wsproxy_systemd_service_result.changed"
 
-- name: Ensure matrix-mautrix-twitter.service restarted, if necessary
+- name: Ensure systemd reloaded after matrix-mautrix-syncproxy.service installation
   ansible.builtin.service:
-    name: "matrix-mautrix-twitter.service"
+    daemon_reload: true
+  when: "matrix_mautrix_wsproxy_syncproxy_systemd_service_result.changed"
+
+- name: Ensure matrix-mautrix-wsproxy.service restarted, if necessary
+  ansible.builtin.service:
+    name: "matrix-mautrix-wsproxy.service"
     state: restarted
-  when: "matrix_mautrix_twitter_requires_restart | bool"
+  when: "matrix_mautrix_wsproxy_requires_restart | bool"
+
+- name: Ensure matrix-mautrix-syncproxy.service restarted, if necessary
+  ansible.builtin.service:
+    name: "matrix-mautrix-syncproxy.service"
+    state: restarted
+  when: "matrix_mautrix_wsproxy_syncproxy_requires_restart | bool"

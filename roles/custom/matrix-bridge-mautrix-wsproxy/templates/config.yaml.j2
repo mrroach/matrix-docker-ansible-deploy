@@ -1,0 +1,13 @@
+listen_address: :29331
+appservices:
+{% for item in matrix_mautrix_wsproxy_users %}
+- id: {{ item.user }}-sms
+  as: {{ item.as_token }}
+  hs: {{ item.hs_token }}
+{% endfor %}
+sync_proxy:
+  # The URL that mautrix-wsproxy can use to reach mautrix-syncproxy
+  url: http://matrix-mautrix-syncproxy:29332
+  # The URL that mautrix-syncproxy can use to reach mautrix-wsproxy
+  wsproxy_url: http://matrix-mautrix-wsproxy:29331
+  shared_secret: {{ matrix_mautrix_wsproxy_sync_proxy_shared_key }}
